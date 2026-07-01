@@ -4,9 +4,7 @@ from database import Post, SessionLocal
 app = FastAPI()
 db = SessionLocal()
 
-from pydantic import BaseModel
-class CreatePost(BaseModel):
-    content : str
+from schemas import CreatePost
 
 @app.post("/posts")
 def create_post(post :  CreatePost):

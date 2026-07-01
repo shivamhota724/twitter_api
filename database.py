@@ -8,10 +8,6 @@ SessionLocal = sessionmaker(bind=engine)
 
 Base = declarative_base()
 
-class Post(Base):
-    __tablename__ = "posts"
-    id = Column(Integer, primary_key=True)
-    content = Column(String)
-    author = Column(String)
 
+from models import Post
 Base.metadata.create_all(bind=engine)
