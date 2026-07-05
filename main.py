@@ -3,13 +3,14 @@ from database import SessionLocal, get_db
 from models import Post
 from fastapi import Depends
 from sqlalchemy.orm import Session
+from typing import List
 
 app = FastAPI()
 
 
-from schemas import CreatePost
+from schemas import CreatePost, PostResponse
 
-@app.post("/posts")
+@app.post("/posts", response_model=PostResponse)
 def create_post(
     post :  CreatePost,
     db: Session = Depends(get_db)
@@ -23,7 +24,7 @@ def create_post(
     db.refresh(new_post)
     return new_post
 
-@app.get("/posts")
+@app.get("/posts", response_model=List[PostResponse])
 def get_posts( db: Session = Depends(get_db)):
     return db.query(Post).all()
 
