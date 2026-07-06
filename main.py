@@ -1,6 +1,6 @@
 from fastapi import FastAPI, HTTPException
 from database import SessionLocal, get_db
-from models import Post
+from models import Post, User
 from fastapi import Depends
 from sqlalchemy.orm import Session
 from typing import List
@@ -8,7 +8,28 @@ from typing import List
 app = FastAPI()
 
 
-from schemas import CreatePost, PostResponse
+from schemas import CreatePost, PostResponse, CreateUser, UserResponse
+
+@app.post("/users", response_model=UserResponse)
+def create_user(
+    user: CreateUser,
+    db: Session = Depends(get_db)
+):
+    new_user = User(
+        email = user.email,
+        password = user.password
+    )
+    existing_user = db.query(User).filter(User.email == user.email).first()
+    
+    if existing_user:
+        raise HTTPException(
+            status_code=400,
+            detail='email already exists'
+        )
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
+    return new_user
 
 @app.post("/posts", response_model=PostResponse)
 def create_post(

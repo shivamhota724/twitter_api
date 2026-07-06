@@ -15,5 +15,5 @@ def get_db():
 Base = declarative_base()
 
 
-from models import Post
+from models import Post, User
 Base.metadata.create_all(bind=engine)

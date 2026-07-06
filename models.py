@@ -7,3 +7,9 @@ class Post(Base):
     id = Column(Integer, primary_key=True)
     content = Column(String)
     author = Column(String)
+
+class User(Base):
+    __tablename__ = "users"
+    id = Column(Integer, primary_key=True)
+    email = Column(String, unique=True)
+    password = Column(String)
