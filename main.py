@@ -4,11 +4,12 @@ from models import Post, User
 from fastapi import Depends
 from sqlalchemy.orm import Session
 from typing import List
+from utils import hash, verify
 
 app = FastAPI()
 
 
-from schemas import CreatePost, PostResponse, CreateUser, UserResponse
+from schemas import CreatePost, PostResponse, CreateUser, UserResponse, UserLogin
 
 @app.post("/users", response_model=UserResponse)
 def create_user(
@@ -17,7 +18,7 @@ def create_user(
 ):
     new_user = User(
         email = user.email,
-        password = user.password
+        password = hash(user.password)
     )
     existing_user = db.query(User).filter(User.email == user.email).first()
     
@@ -30,6 +31,26 @@ def create_user(
     db.commit()
     db.refresh(new_user)
     return new_user
+
+@app.post("/login")
+def login(
+    user_credentials: UserLogin,
+    db: Session = Depends(get_db)
+):
+    user = db.query(User).filter(User.email == user_credentials.email).first()
+
+    if user is None:
+        raise HTTPException(
+            status_code=403,
+            detail="Invalid credentials"
+        )
+
+    if not verify(user_credentials.password, user.password):
+        raise HTTPException(
+        status_code=403,
+        detail="Invalid credentials"
+    )
+    return {"message": "Login successful"}
 
 @app.post("/posts", response_model=PostResponse)
 def create_post(
