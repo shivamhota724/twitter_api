@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Column, Integer, String, ForeignKey
 from database import Base
 
 
@@ -6,7 +6,7 @@ class Post(Base):
     __tablename__ = "posts"
     id = Column(Integer, primary_key=True)
     content = Column(String)
-    author = Column(String)
+    owner_id = Column(Integer, ForeignKey("users.id"))
 
 class User(Base):
     __tablename__ = "users"

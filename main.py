@@ -5,11 +5,14 @@ from fastapi import Depends
 from sqlalchemy.orm import Session
 from typing import List
 from utils import hash, verify
+from oauth2 import create_access_token
+from oauth2 import get_current_user
+from fastapi.security import OAuth2PasswordRequestForm
 
 app = FastAPI()
 
 
-from schemas import CreatePost, PostResponse, CreateUser, UserResponse, UserLogin
+from schemas import CreatePost, PostResponse, CreateUser, UserResponse, UserLogin, Token
 
 @app.post("/users", response_model=UserResponse)
 def create_user(
@@ -32,12 +35,12 @@ def create_user(
     db.refresh(new_user)
     return new_user
 
-@app.post("/login")
+@app.post("/login", response_model=Token)
 def login(
-    user_credentials: UserLogin,
+    user_credentials: OAuth2PasswordRequestForm = Depends(),
     db: Session = Depends(get_db)
 ):
-    user = db.query(User).filter(User.email == user_credentials.email).first()
+    user = db.query(User).filter(User.email == user_credentials.username).first()
 
     if user is None:
         raise HTTPException(
@@ -50,16 +53,23 @@ def login(
         status_code=403,
         detail="Invalid credentials"
     )
-    return {"message": "Login successful"}
+    access_token = create_access_token(
+        data={"user_id": user.id}
+    )
+    return {
+        "access_token": access_token,
+        "token_type": "bearer"
+    }
 
 @app.post("/posts", response_model=PostResponse)
 def create_post(
     post :  CreatePost,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
     new_post = Post(
         content = post.content,
-        author = 'anonymous'
+        owner_id = current_user.id
     )
     db.add(new_post)
     db.commit()
@@ -70,7 +80,7 @@ def create_post(
 def get_posts( db: Session = Depends(get_db)):
     return db.query(Post).all()
 
-@app.get("/posts/{post_id}")
+@app.get("/posts/{post_id}", response_model=PostResponse)
 def get_post(post_id: int,  db: Session = Depends(get_db)):
     post = db.query(Post).filter(Post.id == post_id).first() 
 
@@ -82,13 +92,22 @@ def get_post(post_id: int,  db: Session = Depends(get_db)):
     return post
 
 @app.delete("/posts/{post_id}")
-def delete_post(post_id: int,  db: Session = Depends(get_db)):
+def delete_post(
+    post_id: int,  
+    db: Session = Depends(get_db), 
+    current_user: User = Depends(get_current_user)
+):
     post = db.query(Post).filter(Post.id == post_id).first()
     
     if post is None:
         raise HTTPException(
             status_code=404,
             detail='Post not found'
+        )
+    if post.owner_id != current_user.id:
+        raise HTTPException(
+            status_code=403,
+            detail="Not authorized to perform this action"
         )
     db.delete(post)
     db.commit()
@@ -98,13 +117,20 @@ def delete_post(post_id: int,  db: Session = Depends(get_db)):
 def update_post(
     post_id: int,
     post_update: CreatePost,  
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
     post = db.query(Post).filter(Post.id == post_id).first()
+
     if post is None:
         raise HTTPException(
-            status_code = 404,
-            detail = 'Post not found'
+            status_code=404,
+            detail='Post not found'
+        )
+    if post.owner_id != current_user.id:
+        raise HTTPException(
+            status_code=403,
+            detail="Not authorized to perform this action"
         )
     post.content = post_update.content
     db.commit()

@@ -21,3 +21,10 @@ class UserResponse(BaseModel):                      ##response model
 class UserLogin(BaseModel):
     email: str
     password: str
+
+class TokenData(BaseModel):
+    user_id: int | None = None
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
