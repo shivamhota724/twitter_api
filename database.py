@@ -1,8 +1,12 @@
 from sqlalchemy import create_engine, Column, Integer, String
 from sqlalchemy.orm import sessionmaker, declarative_base
 
-DATABASE_URL = "sqlite:///twitter.db"
+import os
 
+DATABASE_URL = os.getenv(
+    "DATABASE_URL",
+    "postgresql+psycopg2://shivamhota@localhost/twitter_db"
+)
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(bind=engine)
 def get_db():
@@ -17,3 +21,4 @@ Base = declarative_base()
 
 from models import Post, User
 Base.metadata.create_all(bind=engine)
+
