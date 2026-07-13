@@ -5,7 +5,7 @@ import os
 
 DATABASE_URL = os.getenv(
     "DATABASE_URL",
-    "sqlite:///twitter.db"
+    "postgresql+psycopg2://shivamhota@localhost/twitter_db"
 )
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(bind=engine)
