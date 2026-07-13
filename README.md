@@ -1,6 +1,6 @@
 # Twitter API
 
-A REST API built using FastAPI, SQLAlchemy, and SQLite with JWT Authentication and User Authorization.
+A production-ready REST API built using FastAPI, PostgreSQL, SQLAlchemy, JWT Authentication, and role-based authorization.
 
 ## Live Demo
 
@@ -38,7 +38,7 @@ https://twitter-api-931t.onrender.com/docs
 - Python
 - FastAPI
 - SQLAlchemy ORM
-- SQLite
+- Render PostgreSQL
 - JWT Authentication
 - OAuth2 Password Flow
 - Passlib + bcrypt
@@ -60,7 +60,6 @@ twitter_api/
 ├── utils.py             # Password hashing and verification
 ├── requirements.txt
 ├── Procfile
-├── twitter.db
 └── .gitignore
 ```
 
@@ -209,7 +208,6 @@ FastAPI automatically attaches the JWT token to future requests.
 
 ## Future Improvements
 
-- PostgreSQL integration
 - Database migrations using Alembic
 - Refresh Tokens
 - User profile endpoints
